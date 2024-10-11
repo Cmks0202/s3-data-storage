@@ -20,15 +20,14 @@ logging.basicConfig(
 
 
 ## functions read files 
-def read_files_exames() -> List[str]:
+def read_files_exames(path_default:str) -> List[str]:
     '''Função que lê os arquivos da pasta \exames
     '''
     try:
-        path_default = r'C:\Users\milas\Downloads\exames' # caminho da pasta
         pasta_arquivos = os.listdir(path_default) # listagem de arquivos dentro da pasta
         arquivos: List[str] = []
 
-        logging.info(f'Arquivos dentro da pasta:\n{pasta_arquivos}')
+        logging.info(f'Folder name: {path_default}\n Files in folder: {pasta_arquivos}')
         for arquivo in pasta_arquivos:
             arquivos.append(arquivo)
         return arquivos
@@ -38,8 +37,7 @@ def read_files_exames() -> List[str]:
         return []
     
 
-oi = read_files_exames()
-print
+
 
 
 ## joga os arquivos para o s3
