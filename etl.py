@@ -25,7 +25,7 @@ except Exception as e:
     print(f"Erro ao configurar o cliente S3: {e}")
     raise
 
-def listar_arquivos(pasta: str) -> List[str]:
+def read_files_exames(pasta: str) -> List[str]:
     """Lista todos os arquivos em uma pasta local."""
     arquivos: List[str] = []
     try:
@@ -39,7 +39,7 @@ def listar_arquivos(pasta: str) -> List[str]:
         raise
     return arquivos
 
-def upload_arquivos_para_s3(arquivos: List[str]) -> None:
+def upload_arq_s3(arquivos: List[str]) -> None:
     """Faz upload dos arquivos listados para o S3."""
     for arquivo in arquivos:
         nome_arquivo: str = os.path.basename(arquivo)
@@ -65,7 +65,7 @@ def orq_ETL(pasta: str) -> None:
         raise
 
 if __name__ == "__main__":
-    PASTA_LOCAL: str = 'download'  # Substitua pelo caminho da sua pasta local
+    PASTA_LOCAL: str = 'download'
     try:
         orq_ETL(PASTA_LOCAL)
     except Exception as e:
