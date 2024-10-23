@@ -1,45 +1,72 @@
-## imports
 import os
-import boto3
-import pandas as pd
-import logging
 from typing import List
-# from doenv import load_dotenv
+import boto3
+from dotenv import load_dotenv
 
+# Carrega as variáveis de ambiente do arquivo .env
+load_dotenv()
 
+# Configurações da AWS a partir do .env
+AWS_ACCESS_KEY_ID: str = os.getenv('AWS_ACCESS_KEY_ID')
+AWS_SECRET_ACCESS_KEY: str = os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_REGION: str = os.getenv('AWS_REGION')
+BUCKET_NAME: str = os.getenv('BUCKET_NAME')
 
+# Configura o cliente S3
+try:
+    s3_client = boto3.client(
+        's3',
+        aws_access_key_id=AWS_ACCESS_KEY_ID,
+        aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        region_name=AWS_REGION
+    )
+    print("Client S3 configurado com sucesso.")
+except Exception as e:
+    print(f"Erro ao configurar o cliente S3: {e}")
+    raise
 
-# settings general
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler()  # Para enviar a saída para o console
-    ]
-)
-
-
-## functions read files 
-def read_files_exames(path_default:str) -> List[str]:
-    '''Função que lê os arquivos da pasta \exames
-    '''
+def listar_arquivos(pasta: str) -> List[str]:
+    """Lista todos os arquivos em uma pasta local."""
+    arquivos: List[str] = []
     try:
-        pasta_arquivos = os.listdir(path_default) # listagem de arquivos dentro da pasta
-        arquivos: List[str] = []
+        for nome_arquivo in os.listdir(pasta):
+            caminho_completo = os.path.join(pasta, nome_arquivo)
+            if os.path.isfile(caminho_completo):
+                arquivos.append(caminho_completo)
+        print(f"Arquivos listados na pasta '{pasta}': {arquivos}")
+    except Exception as e:
+        print(f"Erro ao listar arquivos na pasta '{pasta}': {e}")
+        raise
+    return arquivos
 
-        logging.info(f'Folder name: {path_default}\n Files in folder: {pasta_arquivos}')
-        for arquivo in pasta_arquivos:
-            arquivos.append(arquivo)
-        return arquivos
-    except:
-        if not os.path.exists(path_default):
-            logging.error(f"Diretório {path_default} não encontrado.")
-        return []
-    
+def upload_arquivos_para_s3(arquivos: List[str]) -> None:
+    """Faz upload dos arquivos listados para o S3."""
+    for arquivo in arquivos:
+        nome_arquivo: str = os.path.basename(arquivo)
+        try:
+            print(f"Tentando fazer upload de '{nome_arquivo}' para o bucket '{BUCKET_NAME}'...")
+            s3_client.upload_file(arquivo, BUCKET_NAME, nome_arquivo)
+            print(f"{nome_arquivo} foi enviado para o S3.")
+        except Exception as e:
+            print(f"Erro ao enviar '{nome_arquivo}' para o S3: {e}")
+            raise
 
+def orq_ETL(pasta: str) -> None:
+    """Executa o processo completo de backup."""
+    try:
+        print(f"Iniciando o processo de backup para a pasta '{pasta}'...")
+        arquivos: List[str] = listar_arquivos(pasta)
+        if arquivos:
+            upload_arquivos_para_s3(arquivos)
+        else:
+            print("Nenhum arquivo encontrado para backup.")
+    except Exception as e:
+        print(f"Erro no processo de backup: {e}")
+        raise
 
-
-
-## joga os arquivos para o s3
-
-## pipeline (fará as outras anteriores)
+if __name__ == "__main__":
+    PASTA_LOCAL: str = 'download'  # Substitua pelo caminho da sua pasta local
+    try:
+        orq_ETL(PASTA_LOCAL)
+    except Exception as e:
+        print(f"Erro ao executar o backup: {e}")

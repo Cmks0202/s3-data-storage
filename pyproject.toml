@@ -7,8 +7,9 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = "^3.11"
-boto3 = "^1.35"
 pandas = "^2.2.3"
+python-dotenv = "^1.0.1"
+boto3 = "^1.35.45"
 
 
 [build-system]
